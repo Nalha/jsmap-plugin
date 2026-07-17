@@ -5,19 +5,12 @@ description: Explore JavaScript codebases without reading the files. Lists a fil
 
 # jsmap
 
-A PostToolUse hook runs this automatically and injects the result as an
-`additionalContext` block right after this text. **If that block is present, you
-already have the output — do NOT run `node jsmap.js` yourself. Read the block and
-move on.** Running it again via Bash is redundant and wrong.
+A PostToolUse hook runs jsmap for you and injects the result as an
+`additionalContext` block right after this text. Read that block — it is your
+answer. You do not run anything; never fall back to Read/Grep instead.
 
-Only if no `additionalContext` block follows, run
-`node <base directory shown above>/jsmap.js <ARGUMENTS>` via Bash yourself as a
-fallback; never fall back to Read/Grep instead.
-
-The command reference below is for that fallback case and for reading the output —
-not an instruction to invoke node when the hook already answered.
-
-`node jsmap.js <cmd> <path...> [arg]`
+You invoke this skill with `<cmd> <path...> [arg]` as the arguments — the command
+reference below is how you choose them.
 
 Paths are files or directories (directories recurse `.js`, skipping `node_modules`).
 Use **relative, forward-slash** paths — `web`, `web/model/units.js`. Never absolute
