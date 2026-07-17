@@ -3,7 +3,7 @@
   "name": "jsmap",
   "description": "jsmap: explore JS codebases without reading the files.",
   "owner": {
-    "name": "Jesper"
+    "name": "Nalha Saldana"
   },
   "plugins": [
     {
