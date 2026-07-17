@@ -13,7 +13,8 @@ process.stdin.on("end", () => {
 
   const skill = input.tool_input && input.tool_input.skill;
   const args = input.tool_input && input.tool_input.args;
-  if (skill !== "jsmap" || !args) return;
+  // skill may be plugin-qualified, e.g. "jsmap:jsmap"
+  if (!skill || skill.replace(/^.*:/, "") !== "jsmap" || !args) return;
 
   const jsmapPath = path.join(__dirname, "..", "skills", "jsmap", "jsmap.js");
   let out;
