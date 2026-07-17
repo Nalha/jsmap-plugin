@@ -7,7 +7,7 @@ description: Explore JavaScript codebases without reading the files. Lists a fil
 
 A PostToolUse hook runs jsmap for you and injects the result as an
 `additionalContext` block right after this text. Read that block — it is your
-answer. You do not run anything; never fall back to Read/Grep instead.
+answer.
 
 You invoke this skill with `<cmd> <path...> [arg]` as the arguments — the command
 reference below is how you choose them.

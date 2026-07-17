@@ -1,6 +1,6 @@
 {
   "name": "jsmap",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Explore JavaScript codebases without reading the files: API listings, call graphs, callers, and function extraction. Auto-runs via a bundled hook.",
   "skills": "./skills/",
   "hooks": "./hooks/hooks.json"
