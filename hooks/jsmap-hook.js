@@ -29,6 +29,8 @@ process.stdin.on("end", () => {
 
   process.stdout.write(
     JSON.stringify({
+      // additionalContext feeds Claude; systemMessage is the only field the user sees.
+      systemMessage: out,
       hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: out },
     })
   );
