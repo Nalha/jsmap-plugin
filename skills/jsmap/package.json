@@ -1,0 +1,6 @@
+{
+  "name": "jsmap",
+  "private": true,
+  "type": "module",
+  "dependencies": { "acorn": "^8", "acorn-walk": "^8" }
+}

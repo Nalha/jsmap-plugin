@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "jsmap",
+  "description": "jsmap: explore JS codebases without reading the files.",
+  "owner": {
+    "name": "Jesper"
+  },
+  "plugins": [
+    {
+      "name": "jsmap",
+      "description": "API/graph/callers/extract for JS files, with an auto-run hook.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
