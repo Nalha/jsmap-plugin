@@ -1,6 +1,6 @@
 # jsmap
 
-Claude Code plugin for exploring JavaScript codebases without reading whole files.
+Claude Code and Codex plugin for exploring JavaScript codebases without reading whole files.
 Lists a file's API (signatures + docs, no bodies), maps call graphs, finds real
 callers of a function, locates which function contains a string, and extracts one
 function with its callees' signatures.
@@ -8,12 +8,17 @@ function with its callees' signatures.
 A bundled `PostToolUse` hook runs jsmap automatically whenever the `jsmap` skill is
 invoked and injects the result as context — no separate `Bash` call needed.
 
-## Install
+## Install in Claude Code
 
 ```
 /plugin marketplace add Nalha/jsmap-plugin
 /plugin install jsmap@jsmap
 ```
+
+## Install in Codex
+
+Add this repository to a local Codex marketplace, then install `jsmap` from that
+marketplace. The Codex plugin provides a `jsmap` MCP tool backed by the same CLI.
 
 ## Usage
 
@@ -38,5 +43,7 @@ JS only — not `.ts`/`.tsx`.
 ## Structure
 
 - `skills/jsmap/` — `SKILL.md` + `jsmap.js` (with vendored `acorn`/`acorn-walk`)
-- `hooks/` — the auto-run `PostToolUse` hook (`hooks.json` + `jsmap-hook.js`)
-- `.claude-plugin/` — plugin and marketplace manifests
+- `hooks/` - the auto-run `PostToolUse` hook (`hooks.json` + `jsmap-hook.js`)
+- `.claude-plugin/` - Claude Code plugin and marketplace manifests
+- `.codex-plugin/` - Codex plugin manifest
+- `.mcp.json` + `scripts/jsmap-mcp.mjs` - Codex MCP tool wrapper

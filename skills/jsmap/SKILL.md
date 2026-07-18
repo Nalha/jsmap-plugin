@@ -5,9 +5,12 @@ description: Explore JavaScript codebases without reading the files. Lists a fil
 
 # jsmap
 
-A PostToolUse hook runs jsmap for you and injects the result as an
-`additionalContext` block right after this text. Read that block — it is your
-answer.
+Claude Code: a PostToolUse hook runs jsmap and injects its output as an
+`additionalContext` block. Read that block; it is your answer.
+
+Codex: call the bundled `jsmap` MCP tool with `command`, `paths`, and the optional
+`argument`. Return its output as your answer, then read only the reported spans
+if more detail is required. Do not reproduce the operation with shell or grep.
 
 You invoke this skill with `<cmd> <path...> [arg]` as the arguments — the command
 reference below is how you choose them.
