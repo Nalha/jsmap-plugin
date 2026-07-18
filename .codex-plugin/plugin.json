@@ -1,6 +1,6 @@
 {
   "name": "jsmap",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Explore JavaScript codebases without reading whole files: API listings, call graphs, callers, and function extraction.",
   "author": { "name": "Nalha Saldana" },
   "repository": "https://github.com/Nalha/jsmap-plugin",
