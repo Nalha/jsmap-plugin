@@ -10,13 +10,16 @@ The repo root is the skill: `SKILL.md` plus the `jsmap.js` CLI it shells out to
 
 ## Install
 
-Clone into the agent's skills directory:
+Claude Code — via the marketplace, so `/plugin marketplace update jsmap` pulls updates:
 
 ```
-# Claude Code
-git clone https://github.com/Nalha/jsmap-plugin ~/.claude/skills/jsmap
+/plugin marketplace add Nalha/jsmap-plugin
+/plugin install jsmap@jsmap
+```
 
-# Codex
+Codex — clone into the skills directory; `git pull` to update:
+
+```
 git clone https://github.com/Nalha/jsmap-plugin ~/.codex/skills/jsmap
 ```
 

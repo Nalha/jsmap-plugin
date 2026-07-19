@@ -1,0 +1,6 @@
+{
+  "name": "jsmap",
+  "version": "2.0.0",
+  "description": "Explore JavaScript codebases without reading the files: API listings, call graphs, callers, and function extraction.",
+  "author": { "name": "Nalha Saldana" }
+}

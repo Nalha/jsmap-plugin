@@ -2,8 +2,10 @@
 
 An Agent Skill that explores JS files without reading them (API listings, call
 graphs, callers, extraction). The repo root is the skill: `SKILL.md` and the
-`jsmap.js` CLI it tells the agent to run. Installed by cloning into the Claude
-Code or Codex skills directory.
+`jsmap.js` CLI it tells the agent to run. Claude Code installs it via the
+marketplace in `.claude-plugin/` (a root `SKILL.md` is a valid plugin, so no
+`skills/` dir needed); Codex users clone into `~/.codex/skills/jsmap`. Bump
+`version` in `.claude-plugin/plugin.json` when shipping a change.
 
 Acorn is vendored as two self-contained ESM files in `vendor/` (no `node_modules`
 at install time). Refresh with `npm run vendor` after bumping the version in
