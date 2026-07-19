@@ -5,10 +5,11 @@ description: Explore JavaScript codebases without reading the files. Lists a fil
 
 # jsmap
 
-Run the CLI bundled with this skill via the shell:
+Run the `jsmap.js` file beside this `SKILL.md` via the shell. Resolve the path
+from this file's directory, not the plugin root:
 
 ```
-node <this skill's directory>/jsmap.js <cmd> <path...> [arg]
+node <directory containing this SKILL.md>/jsmap.js <cmd> <path...> [arg]
 ```
 
 Its stdout is your answer — the command reference below is how you choose the
