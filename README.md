@@ -5,8 +5,8 @@ reading whole files. Lists a file's API (signatures + docs, no bodies), maps cal
 graphs, finds real callers of a function, locates which function contains a string,
 and extracts one function with its callees' signatures.
 
-The repo root is the skill: `SKILL.md` plus the `jsmap.js` CLI it shells out to
-(acorn vendored in `vendor/`, so no `npm install` needed). Requires Node.
+The plugin bundles one skill: `skills/jsmap/` holds `SKILL.md` and the `jsmap.js` CLI
+it shells out to (acorn vendored in `vendor/`, so no `npm install` needed). Requires Node.
 
 ## Install
 
@@ -17,10 +17,11 @@ Claude Code — via the marketplace, so `/plugin marketplace update jsmap` pulls
 /plugin install jsmap@jsmap
 ```
 
-Codex — clone into the skills directory; `git pull` to update:
+Codex — via the marketplace:
 
 ```
-git clone https://github.com/Nalha/jsmap-plugin ~/.codex/skills/jsmap
+codex plugin marketplace add Nalha/jsmap-plugin
+codex plugin add jsmap@jsmap
 ```
 
 ## Usage
@@ -29,7 +30,7 @@ The agent triggers it automatically on JS-exploration questions, or invoke
 directly, e.g. `/jsmap` in Claude Code. Under the hood it runs:
 
 ```
-node jsmap.js <cmd> <path...> [arg]
+node skills/jsmap/jsmap.js <cmd> <path...> [arg]
 ```
 
 | Command | Answers |
