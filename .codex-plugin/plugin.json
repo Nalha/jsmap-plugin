@@ -1,7 +1,7 @@
 {
   "name": "jsmap",
-  "version": "2.0.1",
-  "description": "Explore JavaScript codebases without reading whole files: API listings, call graphs, callers, and function extraction.",
+  "version": "2.1.0",
+  "description": "Compact JavaScript API listings, name-based call graphs, candidate callers, and function extraction.",
   "author": {
     "name": "Nalha Saldana",
     "url": "https://github.com/Nalha"
@@ -13,7 +13,7 @@
   "interface": {
     "displayName": "jsmap",
     "shortDescription": "Explore JavaScript without reading whole files",
-    "longDescription": "List APIs, map call graphs, find callers, and extract functions from JavaScript codebases.",
+    "longDescription": "List APIs including nested helpers and test callbacks, map name-based call graphs, find candidate callers, and extract functions.",
     "developerName": "Nalha Saldana",
     "category": "Developer Tools",
     "capabilities": ["Read"],
@@ -21,7 +21,7 @@
     "defaultPrompt": [
       "Map the call graph of this JavaScript codebase.",
       "Show me the API of this JavaScript file.",
-      "Find every caller of this JavaScript function."
+      "Find candidate callers of this uniquely named JavaScript function."
     ]
   }
 }

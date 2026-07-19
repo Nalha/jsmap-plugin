@@ -69,7 +69,7 @@ const signatureOf = (def) => {
   const fn = def.node.value ?? def.node;
   if (!fn.params) return def.name;
   const params = fn.params.map((p) => def.src.slice(p.start, p.end).replace(/\s+/g, ' ')).join(', ');
-  return `${def.name}(${params})`;
+  return def.name.endsWith(')') ? def.name : `${def.name}(${params})`;
 };
 
 /** First sentence of the JSDoc immediately above a definition. */
@@ -105,9 +105,10 @@ class JsMap {
     this.defsByName = new Map();
     this.imports = []; // local name -> source module, per import
     for (const file of files) this.indexFile(file);
+    this.defs.sort((a, b) => a.file.localeCompare(b.file) || a.outer.start - b.outer.start);
   }
 
-  /** Parse one file and record its top-level definitions and imports. */
+  /** Parse one file and record its definitions and imports. */
   indexFile(file) {
     const src = readFileSync(file, 'utf8');
     const comments = [];
@@ -117,29 +118,42 @@ class JsMap {
     } catch (e) { console.error(`// skipped ${file}: ${e.message}`); return; }
 
     // `node` is the function/class itself; `outer` includes any export wrapper.
+    const seen = new Set();
     const record = (name, node, outer) => {
-      if (name) this.addDef({ name, node, outer, file, src, comments });
+      const key = `${name}:${node.start}`;
+      if (name && !seen.has(key)) {
+        seen.add(key);
+        this.addDef({ name, node, outer, file, src, comments });
+      }
     };
-    for (const stmt of ast.body) {
-      if (stmt.type === 'ImportDeclaration') {
-        for (const spec of stmt.specifiers) this.imports.push({ file, local: spec.local.name, source: stmt.source.value });
-        continue;
-      }
-      const decl = stmt.type.startsWith('ExportNamed') || stmt.type.startsWith('ExportDefault')
-        ? stmt.declaration : stmt;
-      if (!decl) continue;
-      if (decl.type === 'FunctionDeclaration') record(decl.id?.name, decl, stmt);
-      else if (decl.type === 'ClassDeclaration') {
-        record(decl.id?.name, decl, stmt);
-        for (const member of decl.body.body) {
-          if (member.key && member.type === 'MethodDefinition') record(`${decl.id?.name}.${member.key.name}`, member, member);
-        }
-      } else if (decl.type === 'VariableDeclaration') {
-        for (const declarator of decl.declarations) {
-          if (declarator.init && /Function/.test(declarator.init.type)) record(declarator.id?.name, declarator.init, stmt);
-        }
-      }
-    }
+    const outer = (node, ancestors) => {
+      const parent = ancestors.at(-2);
+      return parent?.type?.startsWith('Export') ? parent : node;
+    };
+    const keyName = (node) => node?.computed ? src.slice(node.key.start, node.key.end) : node?.key?.name ?? node?.key?.value;
+    walk.ancestor(ast, {
+      ImportDeclaration: (node) => {
+        for (const spec of node.specifiers) this.imports.push({ file, local: spec.local.name, source: node.source.value });
+      },
+      FunctionDeclaration: (node, _state, ancestors) => record(node.id?.name, node, outer(node, ancestors)),
+      ClassDeclaration: (node, _state, ancestors) => record(node.id?.name, node, outer(node, ancestors)),
+      VariableDeclarator(node, _state, ancestors) {
+        const wrapper = ancestors.find((a) => a.type?.startsWith('Export')) ?? node;
+        if (node.init && /Function/.test(node.init.type)) record(node.id?.name, node.init, wrapper);
+      },
+      MethodDefinition(node, _state, ancestors) {
+        const owner = [...ancestors].reverse().find((a) => /Class/.test(a.type) && a.id)?.id.name;
+        record(`${owner ?? 'class'}.${keyName(node)}`, node, node);
+      },
+      Property(node) {
+        if (node.value && /Function/.test(node.value.type)) record(keyName(node), node.value, node);
+      },
+      CallExpression(node) {
+        const call = calleeName(node.callee);
+        const label = call && node.arguments[0]?.type === 'Literal' ? `${call}(${JSON.stringify(node.arguments[0].value)})` : null;
+        for (const arg of node.arguments) if (label && /Function/.test(arg.type)) record(label, arg, arg);
+      },
+    }, null, this);
   }
 
   addDef(def) {
@@ -164,10 +178,18 @@ class JsMap {
       .sort((a, b) => (a.outer.end - a.outer.start) - (b.outer.end - b.outer.start))[0];
   }
 
-  /** Definitions named `name`, or die pointing at the import that provides it. */
-  defsNamed(name) {
+  /** One definition named `name` (optionally `path#name`), or a useful error. */
+  defsNamed(selector) {
+    const split = selector.lastIndexOf('#');
+    const path = split === -1 ? null : selector.slice(0, split);
+    const name = split === -1 ? selector : selector.slice(split + 1);
     const hits = this.defsByName.get(name);
-    if (hits) return hits;
+    const selected = path ? hits?.filter((def) => displayPath(def.file) === path) : hits;
+    if (selected?.length === 1) return selected;
+    if (selected?.length > 1 || (hits?.length && !path)) {
+      console.error(`ambiguous: ${name}\n${hits.map((def) => `  ${displayPath(def.file)}#${name}  ${locationOf(def)}`).join('\n')}\nUse path#name with extract; callers cannot distinguish same-named functions.`);
+      process.exit(1);
+    }
     const imported = this.imports.find((i) => i.local === name);
     const hint = imported ? ` (imported in ${displayPath(imported.file)} from ${imported.source} — try that file)` : '';
     console.error(`not found: ${name}${hint}`);
@@ -198,17 +220,27 @@ class JsMap {
   }
 
   graph(name) {
+    const selected = name ? new Set(this.defsNamed(name)) : null;
     for (const def of this.defs) {
-      if (name && def.name !== name) continue;
-      const callees = this.callsIn(def);
-      if (callees.length) console.log(`${def.name} -> ${callees.join(', ')}`);
+      if (selected && !selected.has(def)) continue;
+      const callees = this.callsIn(def).map((name) => {
+        const hits = this.defsByName.get(name);
+        return hits.length === 1 ? `${displayPath(hits[0].file)}#${name}` : `${name}?`;
+      });
+      if (callees.length) console.log(`${displayPath(def.file)}#${def.name} -> ${callees.join(', ')}`);
     }
   }
 
   callers(name) {
+    const plainName = name?.slice(name.lastIndexOf('#') + 1);
+    if ((this.defsByName.get(plainName)?.length ?? 0) > 1) {
+      console.error(`callers unavailable: ${plainName} has multiple definitions; name-based calls cannot identify the target`);
+      process.exit(1);
+    }
+    this.defsNamed(name);
     const callers = this.defs
-      .map((def) => [def, callSites(def, name)])
-      .filter(([def, sites]) => sites.length && def.name !== name);
+      .map((def) => [def, callSites(def, plainName)])
+      .filter(([def, sites]) => sites.length && def.name !== plainName);
     for (const [def, sites] of callers) console.log(`${signatureOf(def)}  ${locationOf(def)}  calls at ${sites.join(', ')}`);
     const total = callers.reduce((n, [, sites]) => n + sites.length, 0);
     console.log(`\n// ${total} call sites in ${callers.length} functions; comments and imports excluded`);
