@@ -5,15 +5,14 @@ description: Explore JavaScript codebases without reading the files. Lists a fil
 
 # jsmap
 
-Claude Code: a PostToolUse hook runs jsmap and injects its output as an
-`additionalContext` block. Read that block; it is your answer.
+Run the CLI bundled with this skill via the shell:
 
-Codex: call the bundled `jsmap` MCP tool with `command`, `paths`, and the optional
-`argument`. Return its output as your answer, then read only the reported spans
-if more detail is required. Do not reproduce the operation with shell or grep.
+```
+node <this skill's directory>/jsmap.js <cmd> <path...> [arg]
+```
 
-You invoke this skill with `<cmd> <path...> [arg]` as the arguments — the command
-reference below is how you choose them.
+Its stdout is your answer — the command reference below is how you choose the
+arguments. Do not reproduce the operation with grep or by reading the file.
 
 Paths are files or directories (directories recurse `.js`, skipping `node_modules`).
 Use **relative, forward-slash** paths — `web`, `web/model/units.js`. Never absolute

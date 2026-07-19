@@ -1,31 +1,32 @@
 # jsmap
 
-Claude Code and Codex plugin for exploring JavaScript codebases without reading whole files.
-Lists a file's API (signatures + docs, no bodies), maps call graphs, finds real
-callers of a function, locates which function contains a string, and extracts one
-function with its callees' signatures.
+An [Agent Skill](https://agentskills.io) for exploring JavaScript codebases without
+reading whole files. Lists a file's API (signatures + docs, no bodies), maps call
+graphs, finds real callers of a function, locates which function contains a string,
+and extracts one function with its callees' signatures.
 
-A bundled `PostToolUse` hook runs jsmap automatically whenever the `jsmap` skill is
-invoked and injects the result as context — no separate `Bash` call needed.
+The repo root is the skill: `SKILL.md` plus the `jsmap.js` CLI it shells out to
+(acorn vendored in `vendor/`, so no `npm install` needed). Requires Node.
 
-## Install in Claude Code
+## Install
+
+Clone into the agent's skills directory:
 
 ```
-/plugin marketplace add Nalha/jsmap-plugin
-/plugin install jsmap@jsmap
+# Claude Code
+git clone https://github.com/Nalha/jsmap-plugin ~/.claude/skills/jsmap
+
+# Codex
+git clone https://github.com/Nalha/jsmap-plugin ~/.codex/skills/jsmap
 ```
-
-## Install in Codex
-
-Add this repository to a local Codex marketplace, then install `jsmap` from that
-marketplace. The Codex plugin provides a `jsmap` MCP tool backed by the same CLI.
 
 ## Usage
 
-Invoke the `jsmap` skill with a command and path, e.g.:
+The agent triggers it automatically on JS-exploration questions, or invoke
+directly, e.g. `/jsmap` in Claude Code. Under the hood it runs:
 
 ```
-/jsmap api web/model/units.js
+node jsmap.js <cmd> <path...> [arg]
 ```
 
 | Command | Answers |
@@ -39,11 +40,3 @@ Invoke the `jsmap` skill with a command and path, e.g.:
 
 Paths are files or directories (directories recurse `.js`, skipping `node_modules`).
 JS only — not `.ts`/`.tsx`.
-
-## Structure
-
-- `skills/jsmap/` — `SKILL.md` + `jsmap.js` (with vendored `acorn`/`acorn-walk`)
-- `hooks/` - the auto-run `PostToolUse` hook (`hooks.json` + `jsmap-hook.js`)
-- `.claude-plugin/` - Claude Code plugin and marketplace manifests
-- `.codex-plugin/` - Codex plugin manifest
-- `.mcp.json` + `scripts/jsmap-mcp.mjs` - Codex MCP tool wrapper
