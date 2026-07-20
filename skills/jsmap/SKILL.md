@@ -5,12 +5,15 @@ description: Explore JavaScript codebases compactly. Lists a file's API, maps na
 
 # jsmap
 
-Run the `jsmap.js` file beside this `SKILL.md` via the shell. Resolve the path
-from this file's directory, not the plugin root:
+Run it from the shell — the plugin puts `jsmap` on `PATH`:
 
 ```
-node <directory containing this SKILL.md>/jsmap.js <cmd> <path...> [arg]
+jsmap <cmd> <path...> [arg]
 ```
+
+Only if that command is not found, fall back to
+`node <directory containing this SKILL.md>/jsmap.js <cmd> <path...> [arg]`.
+Never search the filesystem for `jsmap.js`.
 
 Its stdout is your answer — the command reference below is how you choose the
 arguments. Do not reproduce the operation with grep or by reading the file.
