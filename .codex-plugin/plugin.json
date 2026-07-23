@@ -1,6 +1,6 @@
 {
   "name": "jsmap",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Compact JavaScript API listings, name-based call graphs, candidate callers, and function extraction.",
   "author": {
     "name": "Nalha Saldana",

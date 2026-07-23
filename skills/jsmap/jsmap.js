@@ -1,9 +1,34 @@
 #!/usr/bin/env node
-// jsmap: answer what/where/how-wired about JS files without reading them.
+// jsmap: answer what/where/how-wired about JS/TS files without reading them.
 import { readFileSync, statSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import * as acorn from './vendor/acorn.mjs';
 import * as walk from './vendor/walk.mjs';
+import { tsPlugin } from './vendor/acorn-typescript.mjs';
+
+const SOURCE_RE = /\.(js|ts|mts|cts|tsx)$/;
+const TsParser = acorn.Parser.extend(tsPlugin());
+const TsxParser = acorn.Parser.extend(tsPlugin({ jsx: {} }));
+
+/** The acorn parser for a file: plain for .js, TS for .ts/.mts/.cts, TS+JSX for .tsx. */
+const parserFor = (file) => {
+  if (file.endsWith('.tsx')) return TsxParser;
+  if (/\.[cm]?ts$/.test(file)) return TsParser;
+  return acorn.Parser;
+};
+
+// acorn-walk lacks visitors for TS/JSX node types; descend into their children
+// generically so a walk never throws on an unknown type.
+function walkChildren(node, state, c) {
+  for (const key in node) {
+    if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+    const value = node[key];
+    for (const child of Array.isArray(value) ? value : [value]) {
+      if (child && typeof child.type === 'string') c(child, state);
+    }
+  }
+}
+const walkBase = new Proxy(walk.base, { get: (base, type) => (type in base ? base[type] : walkChildren) });
 
 const USAGE = `usage: jsmap.js <cmd> <path...> [arg]
   api     <path...>            signatures + first doc line, no bodies
@@ -16,7 +41,7 @@ const USAGE = `usage: jsmap.js <cmd> <path...> [arg]
 /** The whole flow: read args, find the files, index them, run one command. */
 function main() {
   const { cmd, paths, arg } = parseArgs();
-  const files = collectJsFiles(paths);
+  const files = collectSourceFiles(paths);
   new JsMap(files).run(cmd, arg);
 }
 
@@ -44,13 +69,13 @@ Use relative, forward-slash paths (web, web/model/units.js) — a shell eats bac
   return { cmd, paths, arg };
 }
 
-function collectJsFiles(paths) {
-  const jsFilesUnder = (path) => statSync(path).isDirectory()
-    ? readdirSync(path).flatMap((f) => (f === 'node_modules' ? [] : jsFilesUnder(join(path, f))))
-    : (path.endsWith('.js') ? [path] : []);
-  const files = paths.flatMap(jsFilesUnder);
+function collectSourceFiles(paths) {
+  const filesUnder = (path) => statSync(path).isDirectory()
+    ? readdirSync(path).flatMap((f) => (f === 'node_modules' ? [] : filesUnder(join(path, f))))
+    : (SOURCE_RE.test(path) ? [path] : []);
+  const files = paths.flatMap(filesUnder);
   if (!files.length) {
-    console.error(`no .js files under: ${paths.join(', ')}\njsmap is JS-only; use Grep for .ts/.tsx.`);
+    console.error(`no .js/.ts files under: ${paths.join(', ')}`);
     process.exit(1);
   }
   return files;
@@ -92,7 +117,7 @@ const callSites = (def, name) => {
   const lines = new Set();
   walk.simple(def.node, {
     CallExpression(node) { if (calleeName(node.callee) === name) lines.add(node.loc.start.line); },
-  });
+  }, walkBase);
   return [...lines].sort((a, b) => a - b);
 };
 
@@ -112,9 +137,10 @@ class JsMap {
   indexFile(file) {
     const src = readFileSync(file, 'utf8');
     const comments = [];
+    const parser = parserFor(file);
     let ast;
     try {
-      ast = acorn.parse(src, { ecmaVersion: 'latest', sourceType: 'module', locations: true, onComment: comments });
+      ast = parser.parse(src, { ecmaVersion: 'latest', sourceType: 'module', locations: true, onComment: comments });
     } catch (e) { console.error(`// skipped ${file}: ${e.message}`); return; }
 
     // `node` is the function/class itself; `outer` includes any export wrapper.
@@ -153,7 +179,7 @@ class JsMap {
         const label = call && node.arguments[0]?.type === 'Literal' ? `${call}(${JSON.stringify(node.arguments[0].value)})` : null;
         for (const arg of node.arguments) if (label && /Function/.test(arg.type)) record(label, arg, arg);
       },
-    }, null, this);
+    }, walkBase, this);
   }
 
   addDef(def) {
@@ -167,7 +193,7 @@ class JsMap {
     const found = new Set();
     walk.simple(def.node, {
       CallExpression(node) { found.add(calleeName(node.callee)); },
-    });
+    }, walkBase);
     return [...found].filter((name) => name && this.defsByName.has(name) && name !== def.name);
   }
 

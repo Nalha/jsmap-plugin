@@ -6,9 +6,10 @@ extraction). Both Claude Code (`.claude-plugin/`) and Codex (`.codex-plugin/` +
 `.agents/plugins/marketplace.json`) install it from this repo's marketplace.
 Bump `version` in both plugin.json files when shipping a change.
 
-Acorn is vendored as two self-contained ESM files in `skills/jsmap/vendor/` (no
-`node_modules` at install time). Refresh with `npm run vendor` after bumping the
-version in `skills/jsmap/package.json`.
+Acorn, acorn-walk, and `@sveltejs/acorn-typescript` (the maintained fork; parses
+`.ts`/`.tsx`) are vendored as self-contained ESM files in `skills/jsmap/vendor/`
+(no `node_modules` at install time). `npm run vendor` refreshes them, rewriting
+the fork's bare `acorn` import to the vendored `./acorn.mjs`.
 
 ## The one contract that matters
 

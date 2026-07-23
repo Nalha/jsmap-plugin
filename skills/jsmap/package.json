@@ -5,7 +5,7 @@
   "comment": "acorn is vendored into vendor/, not shipped in node_modules. Run `npm run vendor` to refresh.",
   "scripts": {
     "test": "node test.mjs",
-    "vendor": "npm install && cp node_modules/acorn/dist/acorn.mjs vendor/acorn.mjs && cp node_modules/acorn-walk/dist/walk.mjs vendor/walk.mjs"
+    "vendor": "npm install && cp node_modules/acorn/dist/acorn.mjs vendor/acorn.mjs && cp node_modules/acorn-walk/dist/walk.mjs vendor/walk.mjs && sed 's/from \"acorn\"/from \".\\/acorn.mjs\"/g' node_modules/@sveltejs/acorn-typescript/index.js > vendor/acorn-typescript.mjs"
   },
-  "dependencies": { "acorn": "^8", "acorn-walk": "^8" }
+  "dependencies": { "acorn": "^8", "acorn-walk": "^8", "@sveltejs/acorn-typescript": "^1" }
 }
